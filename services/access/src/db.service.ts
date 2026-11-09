@@ -16,7 +16,7 @@ export class DbService implements OnApplicationShutdown {
     try {
       await this.pool.query('SELECT 1');
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
