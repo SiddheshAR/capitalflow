@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
       validationSchema: Joi.object({
         PORT: Joi.number().required(),
         DATABASE_URL: Joi.string().required(),
+        OIDC_ISSUER: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
+        OIDC_AUDIENCE: Joi.string().required(),
       }),
     }),
   ],

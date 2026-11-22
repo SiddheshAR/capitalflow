@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PrincipalStatus {
+  ACTIVE
+  DISABLED
+}
+
+model Principal {
+  id          String          @id @default(uuid()) @db.Uuid
+  idpIssuer   String          @map("idp_issuer")
+  idpSubject  String          @map("idp_subject")
+  displayName String?         @map("display_name")
+  status      PrincipalStatus @default(ACTIVE)
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3) @map("updated_at")
+  organizationMemberships OrganizationMembership[]
+  @@unique([idpIssuer, idpSubject])
+  @@map("principals")
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Organization {
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String
+  status      OrganizationStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt   DateTime           @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  memberships OrganizationMembership[]
+
+  @@map("organizations")
+}
+
+model OrganizationMembership {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid @map("organization_id")
+  principalId    String           @db.Uuid @map("principal_id")
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now()) @db.Timestamptz(3) @map("created_at")
+  updatedAt      DateTime         @updatedAt @db.Timestamptz(3) @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  principal    Principal    @relation(fields: [principalId], references: [id], onDelete: Restrict)
+
+  @@unique([organizationId, principalId])
+  @@index([principalId, status])
+  @@map("organization_memberships")
+}
